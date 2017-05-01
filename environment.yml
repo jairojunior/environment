@@ -1,0 +1,175 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+
+  tasks:
+
+  - name: Essential dev tools
+    dnf: name={{ item }} state=installed
+    with_items:
+      - vim
+      - tmux
+      - git
+      - git-extras
+      - zsh
+      - zeal
+      - the_silver_searcher
+
+  - name: Utils
+    dnf: name={{ item }} state=installed
+    with_items:
+      - tree
+      - moreutils
+      - pv
+      - dtrx
+      - xclip
+
+  - name: Debugging/Tracing tools
+    dnf: name={{ item }} state=installed
+    with_items:
+      - htop
+      - tcpdump
+      - iotop
+      - nethogs
+      - nload
+      - ifstat
+      - iperf
+      - strace
+      - ngrep
+      - mtr
+      - siege
+      - iptraf
+      - nmon
+      - sysstat
+
+  - name: InfoSec
+    dnf: name={{ item }} state=installed
+    with_items:
+      - nmap
+
+  - name: Python tools requirements
+    dnf: name={{ item }} state=installed
+    with_items:
+      - python-devel
+      - redhat-rpm-config
+      - libxml2-devel
+      - libxml-devel
+      - libxslt-devel
+
+  - name: Vagrant
+    dnf:
+      name: 'https://releases.hashicorp.com/vagrant/1.9.4/vagrant_1.9.4_x86_64.rpm'
+      state: present
+
+  - name: Terraform
+    unarchive:
+      src: 'https://releases.hashicorp.com/terraform/0.9.4/terraform_0.9.4_linux_amd64.zip'
+      dest: /opt
+      creates: /opt/terraform
+      remote_src: True
+
+  - name: Packer
+    unarchive:
+      src: 'https://releases.hashicorp.com/packer/1.0.0/packer_1.0.0_linux_amd64.zip'
+      dest: /opt
+      creates: /opt/packer
+      remote_src: True
+
+  - name: Python tools
+    pip: name={{ item }} state=present
+    with_items:
+      - ansible
+      - ansible-lint
+      - mitmproxy
+      - sshuttle
+      - icdiff
+      - httpie
+
+  - name: Tmux plugin manager (tpm)
+    git:
+      repo: https://github.com/tmux-plugins/tpm
+      dest: "{{ home }}/.tmux/plugins/tpm"
+    become_user: "{{ user }}"
+
+  - name: Tmux config
+    copy:
+      src: "{{ home }}/environment/tmux.conf"
+      dest: "{{ home }}/.tmux.conf"
+      owner: "{{ user }}"
+      group: "{{ user }}"
+
+  - name: Pathogen dir
+    file:
+      path: "{{ item }}"
+      state: directory
+      owner: "{{ user }}"
+      group: "{{ user }}"
+    with_items:
+      - "{{ home }}/.vim/autoload"
+      - "{{ home }}/.vim/bundle"
+
+  - name: Install Pathogen
+    get_url:
+      url: https://tpo.pe/pathogen.vim
+      dest: "{{ home}}/.vim/autoload/pathogen.vim"
+    become_user: "{{ user }}"
+
+  - name: vim config
+    copy:
+      src: "{{ home }}/environment/vimrc"
+      dest: "{{ home }}/.vimrc"
+      owner: "{{ user }}"
+
+  - name: Vim plugins
+    git:
+      repo: "{{ item }}"
+      dest: "{{ home }}/.vim/bundle/{{ item | basename }}"
+    become_user: "{{ user }}"
+    with_items:
+      - https://github.com/vim-airline/vim-airline
+      - https://github.com/scrooloose/nerdtree
+      - https://github.com/flazz/vim-colorschemes
+      - https://github.com/ctrlpvim/ctrlp.vim
+      - https://github.com/tpope/vim-fugitive
+      - https://github.com/rodjek/vim-puppet
+      - https://github.com/vim-ruby/vim-ruby
+      - https://github.com/tpope/vim-obsession
+      - https://github.com/vim-syntastic/syntastic
+      - https://github.com/pearofducks/ansible-vim
+      - https://github.com/fatih/vim-go
+      - https://github.com/KabbAmine/zeavim.vim
+      - https://github.com/ekalinin/Dockerfile.vim
+
+  - name: Git config
+    template:
+      src: "{{ home }}/environment/gitconfig.j2"
+      dest: "{{ home }}/.gitconfig"
+      owner: "{{ user }}"
+      group: "{{ user }}"
+
+  - name: VirtualBox key
+    rpm_key:
+      key: https://www.virtualbox.org/download/oracle_vbox.asc
+      state: present
+
+  - name: VirtualBox repo
+    get_url:
+      url: http://download.virtualbox.org/virtualbox/rpm/fedora/virtualbox.repo
+      dest: /etc/yum.repos.d/virtualbox.repo
+
+  - name: VirtualBox package
+    dnf: name=VirtualBox-5.1 state=installed
+
+  - name: Docker CE repo
+    get_url:
+      url: https://download.docker.com/linux/fedora/docker-ce.repo
+      dest: /etc/yum.repos.d/docker-ce.repo
+
+  - name: Docker CE package
+    dnf: name=docker-ce state=installed
+
+  - name: Add user to Docker group
+    user:
+      name: "{{ user }}"
+      groups: docker
