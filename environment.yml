@@ -23,7 +23,7 @@
       - moreutils
       - pv
       - dtrx
-      - xclip
+      - xsel
 
   - name: Debugging/Tracing tools
     dnf: name={{ item }} state=installed
@@ -79,17 +79,29 @@
   - name: Python tools
     pip: name={{ item }} state=present
     with_items:
-      - ansible
-      - ansible-lint
       - mitmproxy
       - sshuttle
       - icdiff
       - httpie
+      - docker-compose
+
+  - name: Ansible development
+    pip: name={{ item }} state=present
+    with_items:
+      - ansible
+      - ansible-lint
+      - molecule
+      - docker
+      - python-vagrant
+      - pytest
+      - pylint
+      - autopep8
 
   - name: Tmux plugin manager (tpm)
     git:
       repo: https://github.com/tmux-plugins/tpm
       dest: "{{ home }}/.tmux/plugins/tpm"
+    become: yes
     become_user: "{{ user }}"
 
   - name: Tmux config
@@ -113,6 +125,7 @@
     get_url:
       url: https://tpo.pe/pathogen.vim
       dest: "{{ home}}/.vim/autoload/pathogen.vim"
+    become: yes
     become_user: "{{ user }}"
 
   - name: vim config
@@ -125,6 +138,7 @@
     git:
       repo: "{{ item }}"
       dest: "{{ home }}/.vim/bundle/{{ item | basename }}"
+    become: yes
     become_user: "{{ user }}"
     with_items:
       - https://github.com/vim-airline/vim-airline
