@@ -8,7 +8,7 @@ This is a collection of tools that I use in my day-to-day tasks.
 
 `cd environment`
 
-`ansible-playbook -i 'localhost,' -c local environment.yml --ask-sudo-pass --extra-vars "home=$HOME user=$USER full_name='Jairo Junior' email=junior.jairo1@gmail.com"`
+`ansible-playbook -i 'localhost,' -c local environment.yml -K --extra-vars "home=$HOME user=$USER full_name='Jairo Junior' email=junior.jairo1@gmail.com"`
 
 ## Tools
 
@@ -20,4 +20,4 @@ This is a collection of tools that I use in my day-to-day tasks.
 
 ## Limitations
 
-Only tested on Fedora 25.
+Fedora 27.
