@@ -26,6 +26,12 @@
       - chromium
       - snapd
 
+  - name: Docker service
+    service:
+      name: docker 
+      state: started
+      enabled: yes
+
   - name: Docker group
     group:
       name: docker
@@ -35,7 +41,9 @@
   - name: Add user to Docker group
     user:
       name: "{{ user }}"
-      groups: docker
+      groups:
+        - wheel
+        - docker
     become: true
 
   - name: Vagrant
